@@ -4,7 +4,7 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 
 const store = (set) => ({
     pubkey : "",
-    privKey : null,
+    privKey : "",
     setPubKey : (key) => set({pubKey: key}),
     setPrivKey : (key) => set({privKey: key})
 })

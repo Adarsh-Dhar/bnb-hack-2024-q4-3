@@ -2,14 +2,14 @@
 
 import nacl from 'tweetnacl';
 import { Button } from '../ui/button';
-import { useStore } from "../zustand";
+import { useStore } from "../zustand/index";
 import { useToast } from "@/components/ui/use-toast"
 
 
 export default function GenerateKey() {
     const keyPair = nacl.sign.keyPair();
-    const updatePublicKey = useStore((key) => key.setPubKey())
-    const updatePrivateKey = useStore((key) => key.setPrivKey())
+    const updatePublicKey = useStore((key) => key.setPubKey)
+    const updatePrivateKey = useStore((key) => key.setPrivKey)
     const { toast } = useToast()
 
     return(

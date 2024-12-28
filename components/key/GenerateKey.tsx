@@ -6,9 +6,7 @@ import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
 
 export function GenerateKey() {
-    const {storeKeys, getKeys} = StoreKeys()
-    const [newKeyName, setNewKeyName] = useState('');
-    const [loading, setLoading] = useState(false);
+    const {storeKeys, getKeys, getAllKeys, deleteKey} = StoreKeys()
 
     const NewKey = async () => {
         const eddsa = await buildEddsa();
@@ -19,7 +17,16 @@ export function GenerateKey() {
         console.log("public key ",pubkey)
         console.log("final public key ",finalPubKey)
         await storeKeys(finalPubKey,prvkey)
-        const get_keys = await getKeys()
+        await deleteKey(4);
+        await deleteKey(6)
+        const get_keys = await getAllKeys()
+        console.log("get keys ",get_keys)
+    }
+
+    const DeleteKey = async () => {
+        await deleteKey(1);
+        await deleteKey(2)
+        const get_keys = await getAllKeys()
         console.log("get keys ",get_keys)
     }
 
@@ -29,6 +36,9 @@ export function GenerateKey() {
             <Button onClick={async () => {
                 await NewKey()
             }}>Generate Key</Button>
+             <Button onClick={async () => {
+                await DeleteKey()
+            }}>Delete Key</Button>
         </div>
     )
 }

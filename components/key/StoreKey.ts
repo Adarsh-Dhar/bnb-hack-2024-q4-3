@@ -21,7 +21,7 @@ export default function StoreKeys() {
         });
     }
 
-    async function storeKeys(publicKey: string, privateKey: string): Promise<void> {
+    async function storeKeys(publicKey: Buffer, privateKey: Buffer): Promise<void> {
         const db = await openDatabase();
         const transaction = db.transaction("keys", "readwrite");
         const store = transaction.objectStore("keys");
@@ -65,5 +65,52 @@ export default function StoreKeys() {
         });
     }
 
-    return { storeKeys, getKeys, openDatabase };
+    async function getAllKeys(): Promise<KeyPair[]> {
+        const db = await openDatabase();
+        const transaction = db.transaction("keys", "readonly");
+        const store = transaction.objectStore("keys");
+
+        return new Promise((resolve, reject) => {
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const keys = request.result as KeyPair[];
+                db.close();
+                resolve(keys);
+            };
+
+            request.onerror = () => {
+                db.close();
+                reject(request.error);
+            };
+        });
+    }
+
+    async function deleteKey(id: number): Promise<void> {
+        try{
+            const db = await openDatabase();
+            const transaction = db.transaction("keys", "readwrite");
+            const store = transaction.objectStore("keys");
+    
+            return new Promise((resolve, reject) => {
+                const request = store.delete(id);
+    
+                request.onsuccess = () => {
+                    db.close();
+                    resolve();
+                };
+    
+                request.onerror = () => {
+                    db.close();
+                    reject(new Error(`Failed to delete key with id ${id}`));
+                };
+            });
+        }catch(error) {
+            console.error(error)
+        }
+       
+    }
+
+
+    return { storeKeys, getKeys, openDatabase, getAllKeys, deleteKey };
 }

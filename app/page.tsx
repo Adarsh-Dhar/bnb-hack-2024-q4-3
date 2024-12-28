@@ -1,5 +1,5 @@
 "use client"
-import GenerateKey from "@/components/key/GenerateKey";
+import {GenerateKey} from "@/components/key/GenerateKey";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {

@@ -1,52 +1,66 @@
-"use client";
-
+import { MaciKeyGenerator } from "../lib/generate";
+import { KeyStorage } from "../lib/store";
+import { useState } from "react";
 import { Button } from "../ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import StoreKeys from "./StoreKey";
-import { zKey } from "snarkjs";
+import { toast } from "sonner";
+import { buildEddsa } from "circomlibjs";
+import crypto from 'crypto';
 
-export default function GenerateKey() {
-    const { toast } = useToast();
-    const { storeKeys } = StoreKeys();
+export function GenerateKey() {
+    const [newKeyName, setNewKeyName] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleKeyGeneration = async () => {
+    const NewKey = async () => {
+        const eddsa = await buildEddsa();
+        const prvkey = crypto.randomBytes(32)
+        const pubkey = eddsa.prv2pub(prvkey)
+        console.log("private key ",prvkey);
+        console.log("public key ",pubkey)
+    }
+
+    const handleGenerateKey = async () => {
+        console.log("hello")
+        // if (!newKeyName) {
+        //     console.log("no name")
+        //     toast.error("Please enter a key name");
+        //     return;
+        // }
+
         try {
-            // Replace these with your actual file paths or fetch them appropriately
-            const r1csName = "example.r1cs"; // Path to your circuit's .r1cs file
-            const ptauName = "powersOfTau.ptau"; // Path to your powers of tau .ptau file
-            const zkeyName = "example.zkey"; // Output filename for the .zkey file
-
-            // Step 1: Generate the .zkey file
-            const zkey = await zKey.newZKey(r1csName, ptauName, zkeyName);
-
-            // Step 2: Export the verification key
-            const vkey = await zKey.exportVerificationKey(zkeyName);
-
-            // Step 3: Store keys securely
-            const provingKey = JSON.stringify(zkey);
-            const verificationKey = JSON.stringify(vkey);
-
-            console.log(`proving key ${provingKey} ver key ${verificationKey}`)
-            storeKeys(provingKey, verificationKey);
-
-            // Step 4: Notify the user
-            toast({
-                title: "Keys Generated",
-                description: "Proving and verification keys have been generated and stored.",
-            });
+            setLoading(true);
+            console.log("Initializing key generator...");
+            // Initialize key generator
+            const keyGenerator = await MaciKeyGenerator.initialize();
+            console.log("Key generator initialized:", keyGenerator);
+            
+            console.log("Generating key pair...");
+            // Generate key pair
+            const keyPair = await keyGenerator.generateKeyPair();
+            console.log("Key pair generated:", keyPair);
+            
+            console.log("Storing key...");
+            // Store the key
+            KeyStorage.storeKey(keyPair, newKeyName);
+            console.log("Key stored:", newKeyName);
+            // Clear input and show success message
+            setNewKeyName('');
+            toast.success("Key generated successfully");
+            
         } catch (error) {
-            console.error("Error generating zk-SNARK keys:", error);
-            toast({
-                title: "Error",
-                description: "Failed to generate zk-SNARK keys.",
-                variant: "destructive",
-            });
+            console.error('Key generation error:', error);
+            toast.error("Failed to generate key");
+        } finally {
+            setLoading(false);
+            console.log("yo")
         }
+        console.log("bye")
     };
 
-    return (
+    return(
         <div>
-            <Button onClick={handleKeyGeneration}>Generate zk-SNARK Keys</Button>
+            <Button onClick={async () => {
+                await NewKey()
+            }}>Generate Key</Button>
         </div>
-    );
+    )
 }

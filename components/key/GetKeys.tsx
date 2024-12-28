@@ -1,43 +1,77 @@
+import React, { useState, useEffect } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import StoreKeys from './StoreKey';
-import { Button } from '../ui/button';
-import { useToast } from "@/components/ui/use-toast";
-import { useState } from 'react';
+import { MdDelete } from "react-icons/md";
 
-export default function GetKeys() {
-    const { toast } = useToast();
-    const { getKeys } = StoreKeys();
-    const [loading, setLoading] = useState(false);
+interface KeyPair {
+    publicKey: string;
+    privateKey: string;
+    timestamp: number;
+}
 
-    const handleViewKeys = async () => {
-        setLoading(true); // Start loading
-        try {
-            const keys = await getKeys();
-            if (keys) {
-                const { publicKey, privateKey } = keys;
-                toast({
-                    title: "Your Keys",
-                    description: `Public Key:\n${publicKey}\n\nPrivate Key:\n${privateKey}`,
-                });
-            } else {
-                toast({
-                    title: "No Keys Found",
-                    description: "Generate a new keypair first.",
-                });
-            }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error : any) {
-            toast({
-                title: "Error Fetching Keys",
-                description: `An error occurred: ${error.message || "Unknown error"}`,
-            });
-        } finally {
-            setLoading(false); // End loading
-        }
+const DisplayKeys = () => {
+  const [keys, setKeys] = useState<KeyPair[]>([]);
+  const { getAllKeys } = StoreKeys();
+
+  useEffect(() => {
+    const fetchKeys = async () => {
+      const fetchedKeys = await getAllKeys();
+      setKeys(fetchedKeys);
     };
 
-    return (
-        <Button onClick={handleViewKeys} disabled={loading}>
-            {loading ? "Loading..." : "View Keypair"}
-        </Button>
-    );
-}
+    fetchKeys();
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const truncateKey = (key : any) => {
+    if (!key) return '';
+    const stringKey = key.toString();
+    return `${stringKey.slice(0, 10)}...${stringKey.slice(-10)}`;
+  };
+
+  return (
+    <Card className="w-full max-w-4xl">
+      <CardHeader>
+        <CardTitle>Stored Keys</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Public Key</TableHead>
+              <TableHead>Private Key</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {keys.length > 0 ? (
+              keys.map((key, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {truncateKey(key.publicKey)}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {truncateKey(key.privateKey)}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                  <MdDelete />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center">
+                  No keys found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default DisplayKeys;

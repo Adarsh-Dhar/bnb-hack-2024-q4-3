@@ -1,6 +1,6 @@
 "use client"
 
-import DisplayKeys from "@/components/key/GetKeys";
+import DisplayKeys from "@/components/key/KeyManagement";
 
 
 export default function Home() {

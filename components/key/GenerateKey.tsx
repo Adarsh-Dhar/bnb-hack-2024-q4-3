@@ -1,12 +1,10 @@
-
-import { useState } from "react";
 import { Button } from "../ui/button";
 import StoreKeys from "./StoreKey";
 import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
 
 export function GenerateKey() {
-    const {storeKeys, getKeys, getAllKeys, deleteKey} = StoreKeys()
+    const {storeKeys, getAllKeys, deleteKey} = StoreKeys()
 
     const NewKey = async () => {
         const eddsa = await buildEddsa();
@@ -22,6 +20,7 @@ export function GenerateKey() {
         const get_keys = await getAllKeys()
         console.log("get keys ",get_keys)
     }
+
 
     const DeleteKey = async () => {
         await deleteKey(1);

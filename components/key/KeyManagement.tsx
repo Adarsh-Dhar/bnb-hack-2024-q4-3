@@ -5,8 +5,11 @@ import StoreKeys from './StoreKey';
 import { MdDelete } from "react-icons/md";
 import { FaKey } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
+import { buildEddsa } from "circomlibjs";
+import crypto from 'crypto';
 
 interface KeyPair {
+    id?: number;
     publicKey: string;
     privateKey: string;
     timestamp: number;
@@ -14,14 +17,16 @@ interface KeyPair {
 
 const DisplayKeys = () => {
   const [keys, setKeys] = useState<KeyPair[]>([]);
-  const { getAllKeys } = StoreKeys();
+  const { getAllKeys, deleteKey, storeKeys } = StoreKeys();
+  const [visiblePrivateKeys, setVisiblePrivateKeys] = useState<{[key: number]: boolean}>({});
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const fetchKeys = async () => {
+    const fetchedKeys = await getAllKeys();
+    setKeys(fetchedKeys);
+  };
 
   useEffect(() => {
-    const fetchKeys = async () => {
-      const fetchedKeys = await getAllKeys();
-      setKeys(fetchedKeys);
-    };
-
     fetchKeys();
   }, []);
 
@@ -30,6 +35,44 @@ const DisplayKeys = () => {
     if (!key) return '';
     const stringKey = key.toString();
     return `${stringKey.slice(0, 10)}...${stringKey.slice(-10)}`;
+  };
+
+  const togglePrivateKey = (index: number) => {
+    setVisiblePrivateKeys(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const handleDelete = async (id: number | undefined) => {
+    if (id === undefined) {
+      console.error('Cannot delete key without ID');
+      return;
+    }
+    
+    try {
+      await deleteKey(id);
+      await fetchKeys();
+    } catch (error) {
+      console.error('Error deleting key:', error);
+    }
+  };
+
+  const handleAddKey = async () => {
+    try {
+      setIsGenerating(true);
+      const eddsa = await buildEddsa();
+      const prvkey = crypto.randomBytes(32);
+      const pubkey = eddsa.prv2pub(prvkey);
+      const finalPubKey = Buffer.concat([pubkey[0], pubkey[1]]);
+      
+      await storeKeys(finalPubKey, prvkey);
+      await fetchKeys();
+    } catch (error) {
+      console.error('Error generating key:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -44,15 +87,19 @@ const DisplayKeys = () => {
               <FaKey className="text-gray-600 w-5 h-5" />
             </div>
             <button 
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              onClick={() => console.log('Add new key')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleAddKey}
+              disabled={isGenerating}
             >
               <IoMdAdd className="w-6 h-6" />
-              <span className="text-sm font-medium">Add New Key</span>
+              <span className="text-sm font-medium">
+                {isGenerating ? 'Generating...' : 'Add New Key'}
+              </span>
             </button>
           </div>
         </CardHeader>
         <CardContent className="p-6">
+          {/* Rest of the table code remains the same */}
           <Table>
             <TableHeader>
               <TableRow>
@@ -66,11 +113,11 @@ const DisplayKeys = () => {
               {keys.length > 0 ? (
                 keys.map((key, index) => (
                   <TableRow 
-                    key={index}
+                    key={key.id || index}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <TableCell className="font-medium text-gray-900">
-                      {index + 1}
+                      {key.id}
                     </TableCell>
                     <TableCell className="font-mono text-sm text-gray-600">
                       {truncateKey(key.publicKey)}
@@ -78,16 +125,19 @@ const DisplayKeys = () => {
                     <TableCell className="flex items-center gap-2 font-mono text-sm text-gray-600">
                       <button 
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
-                        onClick={() => console.log('View private key')}
+                        onClick={() => togglePrivateKey(index)}
                       >
                         <FaKey className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                       </button>
-                      <span>Click to view</span>
+                      {visiblePrivateKeys[index] ? 
+                        truncateKey(key.privateKey) : 
+                        <span>Click to view</span>
+                      }
                     </TableCell>
                     <TableCell>
                       <button 
                         className="p-2 hover:bg-red-50 rounded-full transition-colors group"
-                        onClick={() => console.log('Delete key')}
+                        onClick={() => handleDelete(key.id)}
                       >
                         <MdDelete className="text-gray-400 group-hover:text-red-500 w-5 h-5 transition-colors" />
                       </button>

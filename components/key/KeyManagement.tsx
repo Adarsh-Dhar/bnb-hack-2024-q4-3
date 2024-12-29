@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '../ui/button';
+import { Copy } from 'lucide-react';
 import StoreKeys from './StoreKey';
 import { MdDelete } from "react-icons/md";
 import { FaKey } from "react-icons/fa";
@@ -23,6 +24,7 @@ const DisplayKeys = () => {
   const { getAllKeys, deleteKey, storeKeys } = StoreKeys();
   const [visiblePrivateKeys, setVisiblePrivateKeys] = useState<{[key: number]: boolean}>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<{[key: string]: boolean}>({});
 
   const fetchKeys = async () => {
     const fetchedKeys = await getAllKeys();
@@ -38,6 +40,18 @@ const DisplayKeys = () => {
     if (!key) return '';
     const stringKey = key.toString();
     return `${stringKey.slice(0, 10)}...${stringKey.slice(-10)}`;
+  };
+
+  const handleCopy = async (text: string, keyId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess({ [keyId]: true });
+      setTimeout(() => {
+        setCopySuccess({ [keyId]: false });
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
   };
 
   const togglePrivateKey = (index: number) => {
@@ -68,7 +82,7 @@ const DisplayKeys = () => {
       const prvkey = crypto.randomBytes(32);
       const pubkey = eddsa.prv2pub(prvkey);
       const finalPubKey = uint8ArrayToHex(Buffer.concat([pubkey[0], pubkey[1]]));
-      const finalPrivKey = uint8ArrayToHex(prvkey)
+      const finalPrivKey = uint8ArrayToHex(prvkey);
       
       await storeKeys(finalPubKey, finalPrivKey);
       await fetchKeys();
@@ -103,7 +117,6 @@ const DisplayKeys = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {/* Rest of the table code remains the same */}
           <Table>
             <TableHeader>
               <TableRow>
@@ -125,30 +138,48 @@ const DisplayKeys = () => {
                       {key.id}
                     </TableCell>
                     <TableCell className="font-mono text-sm text-gray-600">
-                      {truncateKey(key.publicKey)}
+                      <div className="flex items-center justify-between">
+                        <span>{truncateKey(key.publicKey)}</span>
+                        <button
+                          onClick={() => handleCopy(key.publicKey, `pub-${key.id}`)}
+                          className="p-1 hover:bg-gray-100 rounded transition-colors"
+                        >
+                          <Copy className={`w-4 h-4 ${copySuccess[`pub-${key.id}`] ? 'text-green-500' : 'text-gray-400'}`} />
+                        </button>
+                      </div>
                     </TableCell>
-                    <TableCell className="flex items-center gap-2 font-mono text-sm text-gray-600">
-                      <button 
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
-                        onClick={() => togglePrivateKey(index)}
-                      >
-                        <FaKey className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                      </button>
-                      {visiblePrivateKeys[index] ? 
-                        truncateKey(key.privateKey) : 
-                        <span>Click to view</span>
-                      }
+                    <TableCell className="font-mono text-sm text-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
+                            onClick={() => togglePrivateKey(index)}
+                          >
+                            <FaKey className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                          </button>
+                          {visiblePrivateKeys[index] ? 
+                            truncateKey(key.privateKey) : 
+                            <span>Click to view</span>
+                          }
+                        </div>
+                        {visiblePrivateKeys[index] && (
+                          <button
+                            onClick={() => handleCopy(key.privateKey, `priv-${key.id}`)}
+                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                          >
+                            <Copy className={`w-4 h-4 ${copySuccess[`priv-${key.id}`] ? 'text-green-500' : 'text-gray-400'}`} />
+                          </button>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="flex items-center gap-2 font-mono text-sm text-gray-600">
-                     
-                     <Button onClick={() => {
-                      try {
-                        signMessage("comon you gunners",key.privateKey)
-                      }catch(error){
-                        console.error(error)
-                      }
-                      
-                     }}>Sign Message</Button>
+                    <TableCell>
+                      <Button onClick={() => {
+                        try {
+                          signMessage("comon you gunners", key.privateKey);
+                        } catch(error) {
+                          console.error(error);
+                        }
+                      }}>Sign Message</Button>
                     </TableCell>
                     <TableCell>
                       <button 
@@ -163,7 +194,7 @@ const DisplayKeys = () => {
               ) : (
                 <TableRow>
                   <TableCell 
-                    colSpan={4} 
+                    colSpan={5}
                     className="text-center py-8 text-gray-500"
                   >
                     No keys found

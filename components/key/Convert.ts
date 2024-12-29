@@ -1,19 +1,20 @@
-export function hexToUint8Array(hex: string): Uint8Array {
-    if (hex.startsWith('0x')) {
-      hex = hex.slice(2);
+export function hexToUint8Array(hexString: string): Uint8Array {
+    // Remove '0x' prefix if present
+    const cleanHex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
+    // Ensure even length
+    const paddedHex = cleanHex.length % 2 === 0 ? cleanHex : '0' + cleanHex;
+    const numbers = new Uint8Array(paddedHex.length / 2);
+    
+    for (let i = 0; i < paddedHex.length; i += 2) {
+      numbers[i / 2] = parseInt(paddedHex.slice(i, i + 2), 16);
     }
-    if (hex.length % 2 !== 0) {
-      throw new Error('Invalid hex string.');
-    }
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-    }
-    return bytes;
+    
+    return numbers;
   }
 
-  export function Uint8ArrayToHex(array: Uint8Array): string {
-    return Array.from(array)
-      .map(byte => byte.toString(16).padStart(2, '0')) // Convert each byte to a hex string and pad with '0' if needed
-      .join(''); // Join the hex strings into a single string
+  // Helper function to convert Uint8Array to hex string
+export function uint8ArrayToHex(bytes: Uint8Array): string {
+    return '0x' + Array.from(bytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
   }

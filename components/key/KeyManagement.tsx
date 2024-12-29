@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '../ui/button';
 import StoreKeys from './StoreKey';
 import { MdDelete } from "react-icons/md";
 import { FaKey } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
-import { Uint8ArrayToHex } from './Convert';
+import { uint8ArrayToHex } from './Convert';
+import { signMessage } from './Sign';
 
 interface KeyPair {
     id?: number;
@@ -65,8 +67,8 @@ const DisplayKeys = () => {
       const eddsa = await buildEddsa();
       const prvkey = crypto.randomBytes(32);
       const pubkey = eddsa.prv2pub(prvkey);
-      const finalPubKey = Uint8ArrayToHex(Buffer.concat([pubkey[0], pubkey[1]]));
-      const finalPrivKey = Uint8ArrayToHex(prvkey)
+      const finalPubKey = uint8ArrayToHex(Buffer.concat([pubkey[0], pubkey[1]]));
+      const finalPrivKey = uint8ArrayToHex(prvkey)
       
       await storeKeys(finalPubKey, finalPrivKey);
       await fetchKeys();
@@ -109,6 +111,7 @@ const DisplayKeys = () => {
                 <TableHead className="text-gray-700">Public Key</TableHead>
                 <TableHead className="text-gray-700">Private Key</TableHead>
                 <TableHead className="w-20 text-gray-700">Actions</TableHead>
+                <TableHead className="w-20 text-gray-700">Sign</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,6 +138,17 @@ const DisplayKeys = () => {
                         truncateKey(key.privateKey) : 
                         <span>Click to view</span>
                       }
+                    </TableCell>
+                    <TableCell className="flex items-center gap-2 font-mono text-sm text-gray-600">
+                     
+                     <Button onClick={() => {
+                      try {
+                        signMessage("comon you gunners",key.privateKey)
+                      }catch(error){
+                        console.error(error)
+                      }
+                      
+                     }}>Sign Message</Button>
                     </TableCell>
                     <TableCell>
                       <button 

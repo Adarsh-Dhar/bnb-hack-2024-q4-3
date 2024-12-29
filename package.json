@@ -29,6 +29,8 @@
     "libsodium-wrappers": "^0.7.15",
     "lucide-react": "^0.469.0",
     "next": "15.1.2",
+    "noble-ed25519": "^1.2.6",
+    "quill": "^2.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",

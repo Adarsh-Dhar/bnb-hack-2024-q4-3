@@ -10,7 +10,7 @@ import { IoMdAdd } from "react-icons/io";
 import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
 import { uint8ArrayToHex } from './Convert';
-import { signMessage } from './Sign';
+import { SignMessage } from './SignMessage';
 
 interface KeyPair {
     id?: number;
@@ -175,7 +175,7 @@ const DisplayKeys = () => {
                     <TableCell>
                       <Button onClick={() => {
                         try {
-                          signMessage("comon you gunners", key.privateKey);
+                          SignMessage(key.privateKey);
                         } catch(error) {
                           console.error(error);
                         }

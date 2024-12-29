@@ -7,6 +7,7 @@ import { FaKey } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
+import { Uint8ArrayToHex } from './Convert';
 
 interface KeyPair {
     id?: number;
@@ -64,9 +65,10 @@ const DisplayKeys = () => {
       const eddsa = await buildEddsa();
       const prvkey = crypto.randomBytes(32);
       const pubkey = eddsa.prv2pub(prvkey);
-      const finalPubKey = Buffer.concat([pubkey[0], pubkey[1]]);
+      const finalPubKey = Uint8ArrayToHex(Buffer.concat([pubkey[0], pubkey[1]]));
+      const finalPrivKey = Uint8ArrayToHex(prvkey)
       
-      await storeKeys(finalPubKey, prvkey);
+      await storeKeys(finalPubKey, finalPrivKey);
       await fetchKeys();
     } catch (error) {
       console.error('Error generating key:', error);

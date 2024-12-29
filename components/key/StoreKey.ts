@@ -21,7 +21,7 @@ export default function StoreKeys() {
         });
     }
 
-    async function storeKeys(publicKey: Buffer, privateKey: Buffer): Promise<void> {
+    async function storeKeys(publicKey: string, privateKey: string): Promise<void> {
         const db = await openDatabase();
         const transaction = db.transaction("keys", "readwrite");
         const store = transaction.objectStore("keys");

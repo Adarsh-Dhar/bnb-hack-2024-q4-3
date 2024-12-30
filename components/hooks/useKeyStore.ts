@@ -1,5 +1,5 @@
 import { openDatabase } from '../db/db';
-import { KeyPair } from '../types/types';
+import { KeyPair, KeyStatus } from '../types/types';
 
 export function useKeyStore() {
     async function storeKeys(publicKey: string, privateKey: string, status: string): Promise<void> {
@@ -96,5 +96,47 @@ export function useKeyStore() {
         }
     }
 
-    return { storeKeys, getKeys, getAllKeys, deleteKey };
+    async function changeStatus(id: number, status: KeyStatus): Promise<void> {
+        const db = await openDatabase();
+        const transaction = db.transaction("keys", "readwrite");
+        const store = transaction.objectStore("keys");
+
+        return new Promise((resolve, reject) => {
+            // First get the existing key
+            const getRequest = store.get(id);
+
+            getRequest.onsuccess = () => {
+                if (getRequest.result) {
+                    // Update the key with new status
+                    const updatedKey = {
+                        ...getRequest.result,
+                        status
+                    };
+
+                    // Put the updated key back in the store
+                    const putRequest = store.put(updatedKey);
+
+                    putRequest.onsuccess = () => {
+                        db.close();
+                        resolve();
+                    };
+
+                    putRequest.onerror = () => {
+                        db.close();
+                        reject(putRequest.error);
+                    };
+                } else {
+                    db.close();
+                    reject(new Error(`Key with id ${id} not found`));
+                }
+            };
+
+            getRequest.onerror = () => {
+                db.close();
+                reject(getRequest.error);
+            };
+        });
+    }
+
+    return { storeKeys, getKeys, getAllKeys, deleteKey, changeStatus};
 }

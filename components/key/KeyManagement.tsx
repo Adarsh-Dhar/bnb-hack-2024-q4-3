@@ -8,7 +8,7 @@ import { MdDelete } from "react-icons/md";
 import { FaKey } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import crypto from 'crypto';
-import { uint8ArrayToHex } from './Convert';
+import { uint8ArrayToHex, stringToHex } from './Convert';
 import { Textarea } from "@/components/ui/textarea";
 import { signAsync, getPublicKeyAsync } from "@noble/ed25519";
 import { useKeyStore } from '../hooks/useKeyStore';
@@ -211,7 +211,7 @@ export const KeyManagement: React.FC = () => {
                                             onClick={async() => {
                                                 const messages = message[key.id?.toString() ?? ''];
                                                 if (!message) return;
-                                                const signMessage = await signAsync(messages, key.privateKey);
+                                                const signMessage = await signAsync(stringToHex(messages), key.privateKey);
                                                 console.log("sign message ", signMessage);
                                             }}
                                             disabled={!message[key.id?.toString() ?? '']}

@@ -17,3 +17,10 @@ export function uint8ArrayToHex(bytes: Uint8Array): string {
   const hex = Buffer.from(bytes).toString('hex');
    return hex
   }
+
+  export function stringToHex(str: string): string {
+    // Convert string to array of bytes
+    const bytes = new TextEncoder().encode(str);
+    // Convert bytes to hex
+    return uint8ArrayToHex(bytes);
+}

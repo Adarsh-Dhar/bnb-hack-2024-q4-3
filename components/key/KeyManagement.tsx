@@ -17,7 +17,7 @@ import { KeyPair, KeyStatus } from '../types/types';
 import { getStatusColor } from '../utils/statusColors';
 
 export const KeyManagement: React.FC = () => {
-    const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<{[keyId: string]: string}>({});
     const [keys, setKeys] = useState<KeyPair[]>([]);
     const { getAllKeys, deleteKey, storeKeys } = useKeyStore();
     const [visiblePrivateKeys, setVisiblePrivateKeys] = useState<{[key: number]: boolean}>({});
@@ -88,6 +88,14 @@ export const KeyManagement: React.FC = () => {
             setIsGenerating(false);
         }
     };
+
+    const handleMessageChange = (keyId: string | undefined, newMessage: string) => {
+      if (keyId === undefined) return;
+      setMessage(prev => ({
+          ...prev,
+          [keyId]: newMessage
+      }));
+  };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -176,19 +184,23 @@ export const KeyManagement: React.FC = () => {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <Textarea 
-                                                placeholder="Type your message here." 
-                                                value={message} 
-                                                onChange={(e) => setMessage(e.target.value)} 
-                                            />
-                                            <Button 
-                                                onClick={async() => {
-                                                    const signMessage = await signAsync(message, key.privateKey);
-                                                    console.log("sign message ", signMessage);
-                                                }}
-                                            >
-                                                Sign
-                                            </Button>
+                                        <Textarea 
+                                            placeholder="Type your message here." 
+                                            value={message[key.id?.toString() ?? ''] || ''} 
+                                            onChange={(e) => handleMessageChange(key.id?.toString(), e.target.value)} 
+                                            className="mb-2"
+                                        />
+                                        <Button 
+                                            onClick={async() => {
+                                                const messages = message[key.id?.toString() ?? ''];
+                                                if (!message) return;
+                                                const signMessage = await signAsync(messages, key.privateKey);
+                                                console.log("sign message ", signMessage);
+                                            }}
+                                            disabled={!message[key.id?.toString() ?? '']}
+                                        >
+                                            Sign
+                                        </Button>
                                         </TableCell>
                                         <TableCell>
                                             <Button

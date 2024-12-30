@@ -14,7 +14,6 @@ export function hexToUint8Array(hexString: string): Uint8Array {
 
   // Helper function to convert Uint8Array to hex string
 export function uint8ArrayToHex(bytes: Uint8Array): string {
-    return '0x' + Array.from(bytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+  const hex = Buffer.from(bytes).toString('hex');
+   return hex
   }

@@ -7,11 +7,10 @@ import { Copy } from 'lucide-react';
 import { MdDelete } from "react-icons/md";
 import { FaKey } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
-import { buildEddsa } from "circomlibjs";
 import crypto from 'crypto';
 import { uint8ArrayToHex } from './Convert';
 import { Textarea } from "@/components/ui/textarea";
-import { signAsync } from "@noble/ed25519";
+import { signAsync, getPublicKeyAsync } from "@noble/ed25519";
 import { useKeyStore } from '../hooks/useKeyStore';
 import { KeyPair, KeyStatus } from '../types/types';
 import { getStatusColor } from '../utils/statusColors';
@@ -72,20 +71,31 @@ export const KeyManagement: React.FC = () => {
     };
 
     const handleAddKey = async () => {
+        console.log('Starting key generation process...');
         try {
             setIsGenerating(true);
-            const eddsa = await buildEddsa();
+            console.log('Generating private key...');
             const prvkey = crypto.randomBytes(32);
-            const pubkey = eddsa.prv2pub(prvkey);
-            const finalPubKey = uint8ArrayToHex(Buffer.concat([pubkey[0], pubkey[1]]));
+            console.log('Private key generated:', prvkey);
             const finalPrivKey = uint8ArrayToHex(prvkey);
+            console.log('Final private key:', finalPrivKey);
+            console.log('Generating public key...');
+            const pubKey = await getPublicKeyAsync(finalPrivKey);
+            console.log('Public key generated:', pubKey);
+            const finalPubKey = uint8ArrayToHex(pubKey);
+            console.log('Final public key:', finalPubKey);
             
+            console.log('Storing keys...');
             await storeKeys(finalPubKey, finalPrivKey, 'Active');
+            console.log('Keys stored successfully.');
+            console.log('Fetching keys...');
             await fetchKeys();
+            console.log('Keys fetched successfully.');
         } catch (error) {
             console.error('Error generating key:', error);
         } finally {
             setIsGenerating(false);
+            console.log('Key generation process completed.');
         }
     };
 

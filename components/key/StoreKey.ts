@@ -21,7 +21,7 @@ export default function StoreKeys() {
         });
     }
 
-    async function storeKeys(publicKey: string, privateKey: string): Promise<void> {
+    async function storeKeys(publicKey: string, privateKey: string, status: string): Promise<void> {
         const db = await openDatabase();
         const transaction = db.transaction("keys", "readwrite");
         const store = transaction.objectStore("keys");
@@ -30,6 +30,7 @@ export default function StoreKeys() {
             publicKey,
             privateKey,
             timestamp: Date.now(),
+            status
         });
 
         return new Promise((resolve, reject) => {

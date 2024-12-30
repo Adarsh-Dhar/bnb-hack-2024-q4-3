@@ -1,12 +1,10 @@
 "use client"
-import {GenerateKey} from "@/components/key/GenerateKey";
-import { Button } from "@/components/ui/button";
+import { KeyManagement } from "@/components/key/KeyManagement";
 
 export default function Home() {
   return (
    <div>
-    <Button onClick={() => {console.log("hello")}}>oy</Button>
-    <GenerateKey />
+    <KeyManagement />
    </div>
   );
 }

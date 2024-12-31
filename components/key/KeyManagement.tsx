@@ -233,7 +233,8 @@ export const KeyManagement: React.FC = () => {
                     <TableCell>
                       <Status 
                         currentStatus={key.status as KeyStatus}
-                        onStatusChange={(newStatus: any) => handleStatusChange(key.id, newStatus)}
+                        
+                        onStatusChange={(newStatus: KeyStatus) => handleStatusChange(key.id, newStatus)}
                       />
                     </TableCell>
                     <TableCell>

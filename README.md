@@ -11,9 +11,7 @@ Monitor key statuses: Active, Revoked, Expired, Compromised, Archived.
 
     Sign MACI-compatible messages.
 Verify message authenticity with public keys.
-- 📂 Import/Export Keys
 
-    Seamlessly import and export keypairs in JSON format for portability.
 - 🔒 Persistent Storage
 
     Keys stored securely using IndexedDB with encryption.

@@ -1,5 +1,5 @@
 import { openDatabase } from '../db/db';
-import { KeyPair,KeyStatus as KeyStatus } from '../types/types';
+import { KeyPair, KeyStatus } from '../types/types';
 
 export function useKeyStore() {
     async function storeKeys(publicKey: string, privateKey: string, status: string): Promise<void> {
